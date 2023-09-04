@@ -31,7 +31,6 @@ print(myCorpus.cosine_sim_new(['citizens', 'economic', 'growth', 'economic'], '2
 #  create a set of text files, store them in a directory specified from 'rootDir' variable
 #
 #  
-'''
 
 rootDir = '/myhomedirectory'   # change that to the directory where the files are
 newCorpus = PlaintextCorpusReader(rootDir, '*')
@@ -42,5 +41,3 @@ for x in q:
    print(x, q[x])
 
 print("-----\n")
-
-'''
