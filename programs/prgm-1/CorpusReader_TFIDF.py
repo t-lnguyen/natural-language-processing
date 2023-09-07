@@ -71,7 +71,7 @@ class CorpusReader_TFIDF:
         # loop through our corpus's documents
         for fileid in self.fileids:
             # loop through our document's words
-            for word in self.words():
+            for word in self.words(fileid):
                 norm_word = word
                 # if unchanged word is in our filtered dictionary
                 if norm_word in filtered_words:
@@ -109,12 +109,7 @@ class CorpusReader_TFIDF:
         """
         return self.corpus.fields()
     
-    def raw(self):
-        """ Returns the raw content of the corpus
-        """
-        return self.corpus.raw()
-    
-    def raw(self, fileids):
+    def raw(self, fileids = None):
         """ Returns the raw content of the specified files
         """
         return self.corpus.raw(fileids)
