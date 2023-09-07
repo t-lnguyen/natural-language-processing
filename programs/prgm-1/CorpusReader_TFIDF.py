@@ -1,6 +1,9 @@
 from nltk import *
+import nltk.stem.snowball
+from nltk.corpus import stopwords
+from nltk.stem import SnowballStemmer
+from math import log
 class CorpusReader_TFIDF:
-    idf_ = ""
     def __init__(self, corpus, tf = "raw", idf = "base", stopWord = "none", 
                  toStem = False, stemFirst = False, ignoreCase = True):
         """
@@ -27,13 +30,114 @@ class CorpusReader_TFIDF:
         """
         self.corpus = corpus
         self.tf = tf
-        self.idf_ = idf
+        self.idf_method = idf        
         self.stopWord = stopWord
+        # stopWord instantiation logic
+        if self.stopWord == "none":
+            self.stopWords = set()
+        elif self.stopWord == "standard":
+            self.stopWords = set(stopwords.words('english'))
+        else:
+            with open(self.stopWord, "r") as stopWordFile:
+                self.stopWords = set(stopWordFile.read().split(' '))
         self.toStem = toStem
         self.stemFirst = stemFirst
         self.ignoreCase = ignoreCase
 
-    def tfidf(fileid, returnZero = False):
+        ## fields for calculating TF-IDF when instantiating the class
+        self.stemmer = SnowballStemmer("english") if self.toStem else None
+        self.tfidf_vector = []
+        self.tf_values = []
+        self.idf_values = []
+        # file ids
+        self.fileids = corpus.fileids()
+        self.distinct_words = []
+        # dictionary for distinct words and their index
+        self.distinct_words_map = {}
+        # store corpus after stemming and stopword removal
+        self.filtered_corpus = {}
+        self._preprocess()
+
+    def _preprocess(self):
+        # loop through the corpus's documents and apply 
+        # cleaning and/or stemming
+        words_count = 0
+        docs_count = len(self.fileids)
+        filtered_words = {}
+        # instantiate dictionary for filtered corpi
+        for fileid in self.fileids:
+            self.filtered_corpus[fileid] = {}
+
+        # loop through our corpus's documents
+        for fileid in self.fileids:
+            # loop through our document's words
+            for word in self.words():
+                norm_word = word
+                # if unchanged word is in our filtered dictionary
+                if norm_word in filtered_words:
+                    word = filtered_words[norm_word]
+                else:
+                    # check case flag
+                    if self.ignoreCase:
+                        word = word.lower()
+                    # check stemming flag
+                    if self.toStem:
+                        word = self.stemmer.stem(word)
+                    # add our filtered word to the filtered dictionary
+                    filtered_words[norm_word] = word
+                # skip word if in stopWords list
+                if word in self.stopWord:
+                    continue
+                # increment frequency of word for current document
+                if word in self.filtered_corpus[fileid]:
+                    self.filtered_corpus[fileid][word] += 1
+                else:
+                    # start the frequency of word increment
+                    self.filtered_corpus[fileid][word] = 1
+                # if we discover a unique word
+                if word not in self.distinct_words_map:
+                    # keep track of our unique word/term frequency
+                    self.distinct_words_map[word] = words_count       
+                    self.distinct_words.append(word)
+                    words_count += 1
+        ## outputs cleaned dictionary of unique words
+        # calculate tf
+        # calculate idf
+
+    def fields(self):
+        """ Returns the files of the corpus
+        """
+        return self.corpus.fields()
+    
+    def raw(self):
+        """ Returns the raw content of the corpus
+        """
+        return self.corpus.raw()
+    
+    def raw(self, fileids):
+        """ Returns the raw content of the specified files
+        """
+        return self.corpus.raw(fileids)
+    
+    def words(self, fileids = None):
+        """ Returns the words of the specified fileids
+        """
+        return self.corpus.words(fileids)        
+
+    def calculate_tf(self, words):
+        tf_vals = {}
+
+        
+        return dict(FreqDist(words))
+
+    def calculate_idf(self):
+        NotImplementedError()
+
+
+
+
+
+    def tfidf(self, fileid, returnZero = False) -> dict:
         """ Return the TF-IDF for the specific document in the corpus (specified by fileid). 
         The vector is represented by a dictionary/hash in python. 
         The keys are the terms, and the values are the tf-idf value of the dimension. 
@@ -41,11 +145,11 @@ class CorpusReader_TFIDF:
         returnZero: if returnZero is true, 
         then the dictionary will contain terms that have 0 value for that vector, 
         otherwise the vector will omit those terms
-
         """
-        NotImplementedError()
+        tf_idf_vector_dict = {}
+        return tf_idf_vector_dict
     
-    def tfidfAll(returnZero = False):
+    def tfidfAll(returnZero = False) -> dict:
         """ Return the TF-IDF for all documents in the corpus. 
         It will be returned as a dictionary. 
         The key is the fileid of each document, 
