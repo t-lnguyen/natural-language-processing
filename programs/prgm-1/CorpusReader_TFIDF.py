@@ -65,9 +65,8 @@ class CorpusReader_TFIDF:
         """
         # loop through the corpus's documents and apply 
         # cleaning and/or stemming
-        words_count = 0
         docs_count = len(self.fileids)
-        self._corpus_clean_filter(words_count=words_count)
+        words_count = self._corpus_clean_filter()
         # calculate tf
         # list to track our document's non-zero index
         corpus_non_zero_indices = []
@@ -116,7 +115,8 @@ class CorpusReader_TFIDF:
             utilizing FreqDist on our filtered corpus
         """
         for fileid in self.fileids:
-            cur_doc_non_zero_indices, cur_doc_tf_vector = [], [0] * words_count
+            cur_doc_non_zero_indices = []
+            cur_doc_tf_vector = [0] * words_count
             # utlize nltk FreqDist module to get the term:frequency pair for a doc
             cur_doc_tf_dist = FreqDist(self.filtered_corpus[fileid].keys())
             # iterate through our term:frequency pair
@@ -127,11 +127,13 @@ class CorpusReader_TFIDF:
             corpus_non_zero_indices.append(cur_doc_non_zero_indices)
             self.tf_values.append(cur_doc_tf_vector)
 
-    def _corpus_clean_filter(self, words_count) -> None:
+    def _corpus_clean_filter(self) -> int:
         """ Implement applicable case logic, stemmer logic and stopWord removal logic.
             Produces cleaned and filter corpus dictionary 
-            and list of distinct words
+            and list of distinct words.
+            Returns: count of distinct words
         """
+        words_count = 0
         filtered_words = {}
         # instantiate our dictionary for filtered corpus documents
         for fileid in self.fileids:
@@ -169,6 +171,7 @@ class CorpusReader_TFIDF:
                     self.distinct_words_map[word] = words_count       
                     words_count += 1
                     self.distinct_words.append(word)
+        return words_count
 
     def fields(self):
         """ Returns the files of the corpus
@@ -194,7 +197,9 @@ class CorpusReader_TFIDF:
         then the dictionary will contain terms that have 0 value for that vector, 
         otherwise the vector will omit those terms
         """
-
+        result = {}
+        doc_tf_idf = self.tfidf[self.fileids.index(fileid)]
+        
         tf_idf_vector_dict = {}
         return tf_idf_vector_dict
     
