@@ -63,7 +63,6 @@ class CorpusReader_TFIDF:
         and stemming, if enabled, to calculate TF, IDF, and TF-IDF
         of its documents
         """
-        # loop through the corpus's documents and apply 
         # cleaning and/or stemming
         docs_count = len(self.fileids)
         words_count = self._corpus_clean_filter()
@@ -197,11 +196,17 @@ class CorpusReader_TFIDF:
         then the dictionary will contain terms that have 0 value for that vector, 
         otherwise the vector will omit those terms
         """
-        result = {}
-        doc_tf_idf = self.tfidf[self.fileids.index(fileid)]
-        
-        tf_idf_vector_dict = {}
-        return tf_idf_vector_dict
+        doc_tf_idf_result = {}
+        doc_tf_idf_values = self.tfidf_vector[self.fileids.index(fileid)]
+        # iterate through the document's distinct words and their indices
+        for word, index in self.distinct_words_map.items():
+            doc_tf_idf_value = doc_tf_idf_values[index]
+            # check whether to omit terms of 0 TF-IDF
+            if not returnZero and doc_tf_idf_value == 0:
+                continue
+            doc_tf_idf_result[word] = doc_tf_idf_value
+
+        return doc_tf_idf_result
     
     def tfidfAll(returnZero = False) -> dict:
         """ Return the TF-IDF for all documents in the corpus. 
