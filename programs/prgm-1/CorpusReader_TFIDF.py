@@ -208,7 +208,7 @@ class CorpusReader_TFIDF:
 
         return doc_tf_idf_result
     
-    def tfidfAll(returnZero = False) -> dict:
+    def tfidfAll(self, returnZero = False) -> dict:
         """ Return the TF-IDF for all documents in the corpus. 
         It will be returned as a dictionary. 
         The key is the fileid of each document, 
@@ -217,7 +217,20 @@ class CorpusReader_TFIDF:
         then the dictionary will contain terms that have 0 value for that vector, 
         otherwise the vector will omit those terms
         """
-        NotImplementedError()
+        corpus_tf_idf_result = {}
+        for fileid in self.fileids:
+            doc_tf_idf_result = {}
+            doc_tf_idf_values = self.tfidf_vector[self.fileids.index(fileid)]
+            # iterate through the document's distinct words and their indices
+            for word, index in self.distinct_words_map.items():
+                doc_tf_idf_value = doc_tf_idf_values[index]
+                # check whether to omit terms of 0 TF-IDF
+                if not returnZero and doc_tf_idf_value == 0:
+                    continue
+                doc_tf_idf_result[word] = doc_tf_idf_value
+                
+            corpus_tf_idf_result[fileid] = doc_tf_idf_result
+        return corpus_tf_idf_result
 
     def tfidfNew(words: list):
         """ Return the tf-idf of a “new” document, represented by a list of words. 
