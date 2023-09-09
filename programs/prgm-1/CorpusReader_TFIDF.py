@@ -1,5 +1,5 @@
 from nltk import *
-import nltk.stem.snowball
+from nltk import FreqDist
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
 from math import log
@@ -49,7 +49,7 @@ class CorpusReader_TFIDF:
         self.tfidf_vector = []
         self.tf_values = []
         self.idf_values = []
-        # file ids
+        # file ids or our corpus's documents
         self.fileids = corpus.fileids()
         self.distinct_words = []
         # dictionary for distinct words and their index
@@ -59,21 +59,24 @@ class CorpusReader_TFIDF:
         self._preprocess()
 
     def _preprocess(self):
+        """ processes the corpus's documents through cleaning/filtering
+        and stemming, if enabled, to calculate TF, IDF, and TF-IDF
+        of its documents
+        """
         # loop through the corpus's documents and apply 
         # cleaning and/or stemming
         words_count = 0
         docs_count = len(self.fileids)
         filtered_words = {}
-        # instantiate dictionary for filtered corpi
+        # instantiate our dictionary for filtered corpus documents
         for fileid in self.fileids:
             self.filtered_corpus[fileid] = {}
-
         # loop through our corpus's documents
         for fileid in self.fileids:
             # loop through our document's words
             for word in self.words(fileid):
                 norm_word = word
-                # if unchanged word is in our filtered dictionary
+                # check if unfiltered word is in our filtered dictionary
                 if norm_word in filtered_words:
                     word = filtered_words[norm_word]
                 else:
@@ -96,14 +99,29 @@ class CorpusReader_TFIDF:
                     self.filtered_corpus[fileid][word] = 1
                 # if we discover a unique word
                 if word not in self.distinct_words_map:
-                    # keep track of our unique word/term frequency
+                    # keep track of our unique word and their index within the corpus documents
+                    ## we consider the corpus documents as one whole document
                     self.distinct_words_map[word] = words_count       
-                    self.distinct_words.append(word)
                     words_count += 1
+                    self.distinct_words.append(word)
         ## outputs cleaned dictionary of unique words
         # calculate tf
+        # list to track our document's non-zero index
+        corpus_non_zero_indices = []
+        for fileid in self.fileids:
+            cur_doc_non_zero_indices, cur_doc_tf_vector = [], [0] * words_count
+            # utlize nltk FreqDist module to get the term:frequency pair for a doc
+            cur_doc_tf_dist = FreqDist(self.filtered_corpus[fileid].keys())
+            # iterate through our term:frequency pair
+            for word, frequency in cur_doc_tf_dist.items():
+                cur_doc_tf_vector[self.distinct_words_map[word]] = frequency
+                if frequency > 0:
+                    cur_doc_non_zero_indices.append(self.distinct_words_map[word])
+            corpus_non_zero_indices.append(cur_doc_non_zero_indices)
+            self.tf_values.append(cur_doc_tf_vector)
+        
         # calculate idf
-
+        blah = ''
     def fields(self):
         """ Returns the files of the corpus
         """
