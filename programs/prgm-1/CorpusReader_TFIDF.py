@@ -58,7 +58,7 @@ class CorpusReader_TFIDF:
         self.filtered_corpus = {}
         self._preprocess()
 
-    def _preprocess(self):
+    def _preprocess(self) -> None:
         """ processes the corpus's documents through cleaning/filtering
         and stemming, if enabled, to calculate TF, IDF, and TF-IDF
         of its documents
@@ -67,6 +67,71 @@ class CorpusReader_TFIDF:
         # cleaning and/or stemming
         words_count = 0
         docs_count = len(self.fileids)
+        self._corpus_clean_filter(words_count=words_count)
+        # calculate tf
+        # list to track our document's non-zero index
+        corpus_non_zero_indices = []
+        self._process_tf(words_count=words_count, corpus_non_zero_indices=corpus_non_zero_indices)
+        
+        # calculate idf
+        self._process_idf(words_count=words_count)
+        
+        # calculate tf-idf
+        self._process_tf_idf(words_count=words_count, docs_count=docs_count,
+                              corpus_non_zero_indices=corpus_non_zero_indices)
+
+    def _process_tf_idf(self, words_count, docs_count, corpus_non_zero_indices) -> None:
+        """ Produces a list of TF-IDF values for our entire corpus' documents.
+            Applies logic for TF and IDF calculation variants 
+        """
+        for doc in range(docs_count):
+            tf_idf_vector = [0] * words_count
+            for corpus_non_zero_index in corpus_non_zero_indices[doc]:
+                tf = self.tf_values[doc][corpus_non_zero_index]
+                idf = self.idf_values[corpus_non_zero_index]
+
+                if self.tf == "log" and tf != 0:
+                    tf = 1 + log(tf, 2)
+
+                if self.idf == "base":
+                    idf = log(docs_count / float(idf), 2)
+                elif self.idf == "smoothed":
+                    idf = log(docs_count / (1 + float(idf)), 2)
+                
+                tf_idf_vector[corpus_non_zero_index] = tf * idf
+            self.tfidf_vector.append(tf_idf_vector)
+
+    def _process_idf(self, words_count) -> None:
+        """ Processes corpus documents based on our filtered corpus to produce
+            a list containing the count of how many documents contain each word.
+        """
+        self.idf_values = [0] * words_count
+        # count how many documents contain each word
+        for fileid in self.fileids:
+            for word in self.filtered_corpus[fileid].keys():
+                self.idf_values[self.distinct_words_map[word]] += 1
+    
+    def _process_tf(self, words_count, corpus_non_zero_indices = list) -> None:
+        """ Processes corpus documents to produce a list of Term Frequency values
+            utilizing FreqDist on our filtered corpus
+        """
+        for fileid in self.fileids:
+            cur_doc_non_zero_indices, cur_doc_tf_vector = [], [0] * words_count
+            # utlize nltk FreqDist module to get the term:frequency pair for a doc
+            cur_doc_tf_dist = FreqDist(self.filtered_corpus[fileid].keys())
+            # iterate through our term:frequency pair
+            for word, frequency in cur_doc_tf_dist.items():
+                cur_doc_tf_vector[self.distinct_words_map[word]] = frequency
+                if frequency > 0:
+                    cur_doc_non_zero_indices.append(self.distinct_words_map[word])
+            corpus_non_zero_indices.append(cur_doc_non_zero_indices)
+            self.tf_values.append(cur_doc_tf_vector)
+
+    def _corpus_clean_filter(self, words_count) -> None:
+        """ Implement applicable case logic, stemmer logic and stopWord removal logic.
+            Produces cleaned and filter corpus dictionary 
+            and list of distinct words
+        """
         filtered_words = {}
         # instantiate our dictionary for filtered corpus documents
         for fileid in self.fileids:
@@ -104,24 +169,7 @@ class CorpusReader_TFIDF:
                     self.distinct_words_map[word] = words_count       
                     words_count += 1
                     self.distinct_words.append(word)
-        ## outputs cleaned dictionary of unique words
-        # calculate tf
-        # list to track our document's non-zero index
-        corpus_non_zero_indices = []
-        for fileid in self.fileids:
-            cur_doc_non_zero_indices, cur_doc_tf_vector = [], [0] * words_count
-            # utlize nltk FreqDist module to get the term:frequency pair for a doc
-            cur_doc_tf_dist = FreqDist(self.filtered_corpus[fileid].keys())
-            # iterate through our term:frequency pair
-            for word, frequency in cur_doc_tf_dist.items():
-                cur_doc_tf_vector[self.distinct_words_map[word]] = frequency
-                if frequency > 0:
-                    cur_doc_non_zero_indices.append(self.distinct_words_map[word])
-            corpus_non_zero_indices.append(cur_doc_non_zero_indices)
-            self.tf_values.append(cur_doc_tf_vector)
-        
-        # calculate idf
-        blah = ''
+
     def fields(self):
         """ Returns the files of the corpus
         """
@@ -137,19 +185,6 @@ class CorpusReader_TFIDF:
         """
         return self.corpus.words(fileids)        
 
-    def calculate_tf(self, words):
-        tf_vals = {}
-
-        
-        return dict(FreqDist(words))
-
-    def calculate_idf(self):
-        NotImplementedError()
-
-
-
-
-
     def tfidf(self, fileid, returnZero = False) -> dict:
         """ Return the TF-IDF for the specific document in the corpus (specified by fileid). 
         The vector is represented by a dictionary/hash in python. 
@@ -159,6 +194,7 @@ class CorpusReader_TFIDF:
         then the dictionary will contain terms that have 0 value for that vector, 
         otherwise the vector will omit those terms
         """
+
         tf_idf_vector_dict = {}
         return tf_idf_vector_dict
     
