@@ -228,7 +228,7 @@ class CorpusReader_TFIDF:
                 if not returnZero and doc_tf_idf_value == 0:
                     continue
                 doc_tf_idf_result[word] = doc_tf_idf_value
-                
+
             corpus_tf_idf_result[fileid] = doc_tf_idf_result
         return corpus_tf_idf_result
 
@@ -239,6 +239,7 @@ class CorpusReader_TFIDF:
         (i.e. the “new” document should not be treated as part of the corpus).
         words: list of words of a document
         """
+        # TODO probably apply preprocess, tf, idf, tf-idf again?
         NotImplementedError()
 
     def idf():

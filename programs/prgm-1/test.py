@@ -9,7 +9,7 @@ print(inaugural.sents(['1789-washington.txt']))
 
 
 myCorpus = CorpusReader_TFIDF(inaugural)
-print(myCorpus.tfidf('1789-Washington.txt'))
+print(myCorpus.tfidf('1789-Washington.txt'), True)
 
 print("-----\n")
 
@@ -19,11 +19,11 @@ for x in q:
 
 print("-----\n")
 
-print(myCorpus.cosine_sim('1789-Washington.txt', '2021-Biden.txt')
+print(myCorpus.cosine_sim('1789-Washington.txt', '2021-Biden.txt'))
 
 print("-----\n")
 
-print(myCorpus.cosine_sim_new(['citizens', 'economic', 'growth', 'economic'], '2021-Biden.txt')
+print(myCorpus.cosine_sim_new(['citizens', 'economic', 'growth', 'economic'], '2021-Biden.txt'))
 
 
 #  This is for testing your own corpus
