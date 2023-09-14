@@ -38,10 +38,15 @@ class CorpusReader_TFIDF:
         elif self.stopWord == "standard":
             self.stopWords = set(stopwords.words('english'))
         else:
+            # TODO need to fix this with more generic approach
+            # TODO being that we read in lines, get stopWords, add to stopWords set, repeat
             with open(self.stopWord, "r") as stopWordFile:
                 self.stopWords = set(stopWordFile.read().split(' '))
+            
+        # TODO apply logic for stemming stopWords first or not
         self.toStem = toStem
         self.stemFirst = stemFirst
+        # TODO apply logic for ignoreCase on stopWords as well
         self.ignoreCase = ignoreCase
 
         ## fields for calculating TF-IDF when instantiating the class
@@ -49,8 +54,8 @@ class CorpusReader_TFIDF:
         self.tfidf_vector = []
         self.tf_values = []
         self.idf_values = []
-        # file ids or our corpus's documents
-        self.fileids = corpus.fileids()
+        # # file ids or our corpus's documents
+        # self.fileids = corpus.fileids()
         self.distinct_words = []
         # dictionary for distinct words and their index
         self.distinct_words_map = {}
@@ -64,7 +69,7 @@ class CorpusReader_TFIDF:
         of its documents
         """
         # cleaning and/or stemming
-        docs_count = len(self.fileids)
+        docs_count = len(self.fileids())
         words_count = self._corpus_clean_filter()
         # calculate tf
         # list to track our document's non-zero index
@@ -91,10 +96,10 @@ class CorpusReader_TFIDF:
                 if self.tf == "log" and tf != 0:
                     tf = 1 + log(tf, 2)
 
-                if self.idf == "base":
+                if self.idf_method == "base":
                     idf = log(docs_count / float(idf), 2)
-                elif self.idf == "smoothed":
-                    idf = log(docs_count / (1 + float(idf)), 2)
+                elif self.idf_method == "smoothed":
+                    idf = log(1 + (docs_count / float(idf)), 2)
                 
                 tf_idf_vector[corpus_non_zero_index] = tf * idf
             self.tfidf_vector.append(tf_idf_vector)
@@ -105,7 +110,7 @@ class CorpusReader_TFIDF:
         """
         self.idf_values = [0] * words_count
         # count how many documents contain each word
-        for fileid in self.fileids:
+        for fileid in self.fileids():
             for word in self.filtered_corpus[fileid].keys():
                 self.idf_values[self.distinct_words_map[word]] += 1
     
@@ -113,7 +118,7 @@ class CorpusReader_TFIDF:
         """ Processes corpus documents to produce a list of Term Frequency values
             utilizing FreqDist on our filtered corpus
         """
-        for fileid in self.fileids:
+        for fileid in self.fileids():
             cur_doc_non_zero_indices = []
             cur_doc_tf_vector = [0] * words_count
             # utlize nltk FreqDist module to get the term:frequency pair for a doc
@@ -135,10 +140,10 @@ class CorpusReader_TFIDF:
         words_count = 0
         filtered_words = {}
         # instantiate our dictionary for filtered corpus documents
-        for fileid in self.fileids:
+        for fileid in self.fileids():
             self.filtered_corpus[fileid] = {}
         # loop through our corpus's documents
-        for fileid in self.fileids:
+        for fileid in self.fileids():
             # loop through our document's words
             for word in self.words(fileid):
                 norm_word = word
@@ -172,10 +177,10 @@ class CorpusReader_TFIDF:
                     self.distinct_words.append(word)
         return words_count
 
-    def fields(self):
-        """ Returns the files of the corpus
+    def fileids(self):
+        """ Returns the file ids of the corpus
         """
-        return self.corpus.fields()
+        return self.corpus.fileids()
     
     def raw(self, fileids = None):
         """ Returns the raw content of the specified files
@@ -197,7 +202,7 @@ class CorpusReader_TFIDF:
         otherwise the vector will omit those terms
         """
         doc_tf_idf_result = {}
-        doc_tf_idf_values = self.tfidf_vector[self.fileids.index(fileid)]
+        doc_tf_idf_values = self.tfidf_vector[self.fileids().index(fileid)]
         # iterate through the document's distinct words and their indices
         for word, index in self.distinct_words_map.items():
             doc_tf_idf_value = doc_tf_idf_values[index]
@@ -218,9 +223,9 @@ class CorpusReader_TFIDF:
         otherwise the vector will omit those terms
         """
         corpus_tf_idf_result = {}
-        for fileid in self.fileids:
+        for fileid in self.fileids():
             doc_tf_idf_result = {}
-            doc_tf_idf_values = self.tfidf_vector[self.fileids.index(fileid)]
+            doc_tf_idf_values = self.tfidf_vector[self.fileids().index(fileid)]
             # iterate through the document's distinct words and their indices
             for word, index in self.distinct_words_map.items():
                 doc_tf_idf_value = doc_tf_idf_values[index]
@@ -232,30 +237,95 @@ class CorpusReader_TFIDF:
             corpus_tf_idf_result[fileid] = doc_tf_idf_result
         return corpus_tf_idf_result
 
-    def tfidfNew(words: list):
+    def tfidfNew(self, words: list):
         """ Return the tf-idf of a “new” document, represented by a list of words. 
         You should honor the various parameters (ignoreCase, toStem etc.) when preprocessing the new document. 
         Also, the idf of each word should not be changed 
         (i.e. the “new” document should not be treated as part of the corpus).
         words: list of words of a document
         """
-        # TODO probably apply preprocess, tf, idf, tf-idf again?
-        NotImplementedError()
+        new_doc_tf = {}
+        new_doc_tf_idf_values = {}
+        new_doc_word_count = len(words)
 
-    def idf():
+        # fill in our new document's word/term frequency dictionary
+        for word in words:
+            norm_word = word
+            # apply the various parameter logics
+            if self.ignoreCase:
+                norm_word = norm_word.lower()
+            if self.toStem:
+                norm_word = self.stemmer.stem(norm_word)
+            if norm_word in self.stopWord:
+                continue
+            # keep track of new document word/term frequency
+            if norm_word in new_doc_tf:
+                new_doc_tf[norm_word] += 1
+            else:
+                new_doc_tf[norm_word] = 1
+        
+        # calculate TF-IDF of new document 
+        for word, frequency in new_doc_tf.items():
+            if word in self.distinct_words_map:
+                index = self.distinct_words_map[word]
+                tf = frequency
+                idf = self.idf_values[index]
+
+                if self.tf == "log" and tf != 0:
+                    tf = 1 + log(tf, 2)
+                if self.idf == "base":
+                    idf = log(new_doc_word_count / float(idf), 2)
+                elif self.idf == "smoothed":
+                    idf = log(1 + (new_doc_word_count / float(idf)), 2)
+
+                new_doc_tf_idf_values[word] = tf * idf
+        
+        return new_doc_tf_idf_values
+
+    def idf(self) -> dict:
         """ Return the idf of each term as 
         a dictionary : keys are the terms, and values are the idf
 
         """
-        NotImplementedError()
+        docs_count = len(self.fileids())
+        term_idf_values = {}
+
+        for word in self.distinct_words_map:
+            word_index = self.distinct_words_map[word]
+            doc_freq = self.idf_values[word_index]
+
+            if self.idf_method == "base":
+                idf = log(docs_count / float(doc_freq), 2)
+            elif self.idf_method == "smoothed":
+                idf = log(1 + (docs_count / float(doc_freq)), 2)
+            term_idf_values[word] = idf
+
+        return term_idf_values
     
-    def cosine_sim(documents: list):
+    def cosine_sim(self, documents: list):
         """ Return the cosine similarity between two documents in the corpus
         documents: list of 2 documents to be compared via cosine similarity
         """
-        NotImplementedError()
+        doc1 = documents[0]
+        doc2 = documents[1]
+
+        # Calculate the dot product of the TF-IDF vectors for the two documents
+        dot_product = sum(doc1.get(term, 0) * doc2.get(term, 0) for term in set(doc1) & set(doc2))
+
+        # Calculate the magnitudes of the TF-IDF vectors for the two documents
+        magnitude_doc1 = math.sqrt(sum(score ** 2 for score in doc1.values()))
+        magnitude_doc2 = math.sqrt(sum(score ** 2 for score in doc2.values()))
+
+        # Calculate the cosine similarity
+        if magnitude_doc1 != 0 and magnitude_doc2 != 0:
+            similarity = dot_product / (magnitude_doc1 * magnitude_doc2)
+        else:
+            # Handle the case where one or both documents have zero magnitude
+            similarity = 0.0
+
+        return similarity
     
-    def cosine_sim_new(words: list, fileid: str):
+    def cosine_sim_new(self, words: list, fileid: str):
         """ Return the cosine similary between a “new” document 
         (as if specified like the tfidf_new() method) and the documents specified by fileid.
         words: list of words of a document
@@ -263,7 +333,7 @@ class CorpusReader_TFIDF:
         """
         NotImplementedError()
 
-    def query(words: list):
+    def query(self, words: list):
         """ BONUS Return a list of (document, cosine_sim) tuples 
         that calculate the cosine similarity between the “new” document 
         (specified by the list of words as the document). 
