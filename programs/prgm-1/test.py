@@ -1,5 +1,12 @@
+# download data if doing first run or to update
+import nltk
+nltk.download('stopwords')
+nltk.download('inaugural')
+nltk.download('punkt')
 from nltk.corpus import inaugural, PlaintextCorpusReader
 from CorpusReader_TFIDF import *
+
+
 
 print(len(inaugural.words()))
 print(inaugural.sents())
@@ -8,7 +15,9 @@ print(inaugural.fileids())
 print(inaugural.sents(['1789-washington.txt']))
 
 
-myCorpus = CorpusReader_TFIDF(inaugural)
+
+myCorpus = CorpusReader_TFIDF(inaugural, tf="log", stopWord="standard")
+# TEST: standard set of corpus functions
 print(myCorpus.tfidf('1789-Washington.txt'), True)
 
 print("-----\n")
@@ -19,7 +28,8 @@ for x in q:
 
 print("-----\n")
 
-print(myCorpus.cosine_sim('1789-Washington.txt', '2021-Biden.txt'))
+docs_list = ['1789-Washington.txt', '2021-Biden.txt']
+print(myCorpus.cosine_sim(docs_list))
 
 print("-----\n")
 
