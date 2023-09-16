@@ -2,7 +2,7 @@ from nltk import *
 from nltk import FreqDist
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
-from math import log
+from math import log, sqrt
 class CorpusReader_TFIDF:
     def __init__(self, corpus, tf = "raw", idf = "base", stopWord = "none", 
                  toStem = False, stemFirst = False, ignoreCase = True):
@@ -302,28 +302,15 @@ class CorpusReader_TFIDF:
 
         return term_idf_values
     
-    def cosine_sim(self, documents: list):
+    def cosine_sim(self, documents: list) -> float:
         """ Return the cosine similarity between two documents in the corpus
         documents: list of 2 documents to be compared via cosine similarity
         """
-        doc1 = documents[0]
-        doc2 = documents[1]
+        doc1 = self.tfidf(documents[0])
+        doc2 = self.tfidf(documents[1])
 
-        # Calculate the dot product of the TF-IDF vectors for the two documents
-        dot_product = sum(doc1.get(term, 0) * doc2.get(term, 0) for term in set(doc1) & set(doc2))
 
-        # Calculate the magnitudes of the TF-IDF vectors for the two documents
-        magnitude_doc1 = math.sqrt(sum(score ** 2 for score in doc1.values()))
-        magnitude_doc2 = math.sqrt(sum(score ** 2 for score in doc2.values()))
-
-        # Calculate the cosine similarity
-        if magnitude_doc1 != 0 and magnitude_doc2 != 0:
-            similarity = dot_product / (magnitude_doc1 * magnitude_doc2)
-        else:
-            # Handle the case where one or both documents have zero magnitude
-            similarity = 0.0
-
-        return similarity
+        return self.cosine_sim_calculator(doc1=doc1, doc2=doc2)
     
     def cosine_sim_new(self, words: list, fileid: str):
         """ Return the cosine similary between a “new” document 
@@ -332,6 +319,22 @@ class CorpusReader_TFIDF:
         fileid: specific document in the corpus
         """
         NotImplementedError()
+    
+    def cosine_sim_calculator(self, doc1: dict, doc2: dict) -> float:
+        """ Calculates cosine simularity using the formula
+            INSERT FORMULA HERE
+        """
+        sum_tfidf1_tfidf1, sum_tfidf2_tfidf2, sum_tfidf1_tfidf2 = 0, 0, 0
+
+        for tf_idf_index in range(len(doc1)):
+            tfidf1 = doc1[tf_idf_index]
+            tfidf2 = doc2[tf_idf_index]
+
+            sum_tfidf1_tfidf1 += tfidf1 * tfidf1
+            sum_tfidf2_tfidf2 += tfidf2 * tfidf2
+            sum_tfidf1_tfidf2 += tfidf1 * tfidf2
+        
+        return sum_tfidf1_tfidf2 / sqrt(sum_tfidf1_tfidf1 * sum_tfidf2_tfidf2)
 
     def query(self, words: list):
         """ BONUS Return a list of (document, cosine_sim) tuples 
