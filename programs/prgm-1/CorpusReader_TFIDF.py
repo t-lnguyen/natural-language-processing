@@ -273,9 +273,9 @@ class CorpusReader_TFIDF:
 
                 if self.tf == "log" and tf != 0:
                     tf = 1 + log(tf, 2)
-                if self.idf == "base":
+                if self.idf_method == "base":
                     idf = log(new_doc_word_count / float(idf), 2)
-                elif self.idf == "smoothed":
+                elif self.idf_method == "smoothed":
                     idf = log(1 + (new_doc_word_count / float(idf)), 2)
 
                 new_doc_tf_idf_values[word] = tf * idf
