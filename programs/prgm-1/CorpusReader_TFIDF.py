@@ -1,4 +1,3 @@
-from nltk import *
 from nltk import FreqDist
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
@@ -353,4 +352,8 @@ class CorpusReader_TFIDF:
         The list should be ordered in decreasing order of cosine similarity.
         words: list of words of a document
         """
-        return {}
+        similarity_scores = []
+        #calculate cosine similarity between "new" doc and existing docs
+        for fileid in self.fileids():
+            similarity_scores.append((fileid, self.cosine_sim_new(words=words, fileid=fileid)))
+        return sorted(similarity_scores, key=lambda x: x[1], reverse=True)
