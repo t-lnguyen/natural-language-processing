@@ -273,6 +273,7 @@ class CorpusReader_TFIDF:
 
                 if self.tf == "log" and tf != 0:
                     tf = 1 + log(tf, 2)
+                #TODO need to verfiy if idf formula is correct
                 if self.idf_method == "base":
                     idf = log(new_doc_word_count / float(idf), 2)
                 elif self.idf_method == "smoothed":
@@ -318,29 +319,38 @@ class CorpusReader_TFIDF:
         words: list of words of a document
         fileid: specific document in the corpus
         """
-        NotImplementedError()
+        doc1 = self.tfidfNew(words=words)
+        doc2 = self.tfidf(fileid=fileid)
+
+        return self.cosine_sim_calculator(doc1=doc1, doc2=doc2)
     
     def cosine_sim_calculator(self, doc1: dict, doc2: dict) -> float:
-        """ Calculates cosine simularity using the formula
-            INSERT FORMULA HERE
+        """ Calculates cosine simularity from 2 dicts of TF-IDF
         """
         sum_tfidf1_tfidf1, sum_tfidf2_tfidf2, sum_tfidf1_tfidf2 = 0, 0, 0
 
-        for tf_idf_index in range(len(doc1)):
-            tfidf1 = doc1[tf_idf_index]
-            tfidf2 = doc2[tf_idf_index]
+        for term in doc1:
+            tfidf1 = doc1[term]
+            if term in doc2:
+                tfidf2 = doc2[term]
+            else:
+                tfidf2 = 0
 
             sum_tfidf1_tfidf1 += tfidf1 * tfidf1
             sum_tfidf2_tfidf2 += tfidf2 * tfidf2
             sum_tfidf1_tfidf2 += tfidf1 * tfidf2
         
+        denominator = sqrt(sum_tfidf1_tfidf1 * sum_tfidf2_tfidf2)
+        if denominator == 0:
+            return 0.0
+        
         return sum_tfidf1_tfidf2 / sqrt(sum_tfidf1_tfidf1 * sum_tfidf2_tfidf2)
 
-    def query(self, words: list):
+    def query(self, words: list) -> list:
         """ BONUS Return a list of (document, cosine_sim) tuples 
         that calculate the cosine similarity between the “new” document 
         (specified by the list of words as the document). 
         The list should be ordered in decreasing order of cosine similarity.
         words: list of words of a document
         """
-        NotImplementedError()
+        return {}
