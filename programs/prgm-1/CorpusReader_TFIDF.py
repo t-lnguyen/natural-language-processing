@@ -3,7 +3,7 @@ from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
 from math import log, sqrt
 class CorpusReader_TFIDF:
-    def __init__(self, corpus, tf = "raw", idf = "base", stopWord = "none", 
+    def __init__(self, corpus, tf = "raw", idf = "base", stopWord = "none",
                  toStem = False, stemFirst = False, ignoreCase = True):
         """
         corpus: NLTK corpus object
@@ -40,16 +40,15 @@ class CorpusReader_TFIDF:
             # TODO need to fix this with more generic approach
             # TODO being that we read in lines, get stopWords, add to stopWords set, repeat
             with open(self.stopWord, "r") as stopWordFile:
-                self.stopWords = set(stopWordFile.read().split(' '))
+                self.stopWords = set(stopWordFile.read().split('\n'))
             
-        # TODO apply logic for stemming stopWords first or not
         self.toStem = toStem
         self.stemFirst = stemFirst
-        # TODO apply logic for ignoreCase on stopWords as well
         self.ignoreCase = ignoreCase
 
-        ## fields for calculating TF-IDF when instantiating the class
         self.stemmer = SnowballStemmer("english") if self.toStem else None
+        self.stopWord = set([word.lower() if self.ignoreCase else word for word in self.stopWord])
+        ## fields for calculating TF-IDF when instantiating the class
         self.tfidf_vector = []
         self.tf_values = []
         self.idf_values = []

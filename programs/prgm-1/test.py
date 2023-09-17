@@ -6,6 +6,8 @@ nltk.download('punkt')
 from nltk.corpus import inaugural, PlaintextCorpusReader
 from CorpusReader_TFIDF import *
 
+import os
+
 
 
 print(len(inaugural.words()))
@@ -14,9 +16,9 @@ print(len(inaugural.sents()))
 print(inaugural.fileids())
 print(inaugural.sents(['1789-washington.txt']))
 
-
-
-myCorpus = CorpusReader_TFIDF(inaugural, tf="log", stopWord="standard")
+cwd = os.getcwd()
+myCorpus = CorpusReader_TFIDF(inaugural, tf = "log", idf = "base", stopWord = "stopwords", 
+                 toStem = True, stemFirst = True, ignoreCase = True)
 # TEST: standard set of corpus functions
 print(myCorpus.tfidf('1789-Washington.txt'), True)
 
@@ -71,8 +73,9 @@ print(query_test)
 #
 #  
 
-rootDir = '/myhomedirectory'   # change that to the directory where the files are
-newCorpus = PlaintextCorpusReader(rootDir, '*')
+#rootDir = '/'   # change that to the directory where the files are
+files = r'.*\.txt'
+newCorpus = PlaintextCorpusReader('/Users/thangnguyen/Documents/Personal/grad/natural-language-processing' , files)
 tfidfCorpus = CorpusReader_TFIDF(newCorpus)
 
 q = tfidfCorpus.tfidfAll()
