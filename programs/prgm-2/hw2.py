@@ -1,6 +1,6 @@
-import gensim.downloader as g1
+from gensim.models import KeyedVectors
 
-def simValues(model: g1.Word2VecKeyedVectors, key: str, countList: []):
+def simValues(model: KeyedVectors, key: str, countList: []):
     """ 
     Args:
         model: a Word2Vec model loaded from Gensim
@@ -10,7 +10,7 @@ def simValues(model: g1.Word2VecKeyedVectors, key: str, countList: []):
         A list of similarity values for the m-th nearest neighbors. If an item in
         countList is not an integer or is out of range, the corresponding value is -10000.0.
     """
-    if not isinstance(model, g1.Word2VecKeyedVectors):
+    if not isinstance(model, KeyedVectors):
         raise ValueError("The 'model' parameter must be a Gensim Word2Vec model.")
 
     if not isinstance(key, str):
@@ -21,12 +21,12 @@ def simValues(model: g1.Word2VecKeyedVectors, key: str, countList: []):
     
     similarity_values = []
 
-    if key not in model:
+    if key not in model.key_to_index:
         # If the key is not in the vocabulary, return -10000.0 for all counts.
         return [-10000.0] * len(countList)
 
     for count in countList:
-        if count <= 0 or count > len(model.vocab) - 1:
+        if count <= 0 or count > len(model.index_to_key) - 1:
             # If count is out of range, return -10000.0.
             similarity_values.append(-10000.0)
         else:
@@ -36,7 +36,7 @@ def simValues(model: g1.Word2VecKeyedVectors, key: str, countList: []):
 
     return similarity_values
 
-def simValuesPct(model: g1.Word2VecKeyedVectors, key: str, countPctList: []):
+def simValuesPct(model: KeyedVectors, key: str, countPctList: []):
     """ 
     Args:
         model: a Word2Vec model loaded from Gensim
