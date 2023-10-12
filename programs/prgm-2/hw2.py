@@ -15,18 +15,15 @@ def simValues(model: KeyedVectors, key: str, countList: []):
 
     if not isinstance(key, str):
         raise ValueError("The 'key' parameter must be a string.")
-
-    if not all(isinstance(count, int) for count in countList):
-        raise ValueError("All elements in 'countList' must be integers.")
     
-    similarity_values = []
-
     if key not in model.key_to_index:
         # If the key is not in the vocabulary, return -10000.0 for all counts.
         return [-10000.0] * len(countList)
-
+    
+    similarity_values = []
+    
     for count in countList:
-        if count <= 0 or count > len(model.index_to_key) - 1:
+        if not isinstance(count, int) or count <= 0 or count > len(model.index_to_key) - 1:
             # If count is out of range, return -10000.0.
             similarity_values.append(-10000.0)
         else:
@@ -44,4 +41,29 @@ def simValuesPct(model: KeyedVectors, key: str, countPctList: []):
         countPctList: a list of integers specifying the percentiles to retrieve similarity values for.
     Returns:
     """
-    NotImplementedError()
+    if not isinstance(model, KeyedVectors):
+        raise ValueError("The 'model' parameter must be a Gensim Word2Vec model.")
+
+    if not isinstance(key, str):
+        raise ValueError("The 'key' parameter must be a string.")
+    
+    if key not in model.key_to_index:
+        # If the key is not in the vocabulary, return -10000.0 for all percentiles.
+        return [-10000.0] * len(countPctList)
+
+    similarity_values = []
+
+    for countPct in countPctList:
+        if countPct < 0 or countPct > 100:
+            # If countPct is out of range, return -10000.0.
+            similarity_values.append(-10000.0)
+        elif countPct == 0:
+            # if the value is 0, it should return the similarity of the most similar word.
+            similarity_values.append(model.most_similar(key, topn=1)[0][1])
+        else:
+            # Calculate the percentile index and retrieve the similarity value.
+            percentile_index = int(countPct * (len(model.index_to_key) - 1) / 100)
+            
+            similarity_values.append(model.similarity(w1=key, w2=model.index_to_key[percentile_index]))
+
+    return similarity_values
