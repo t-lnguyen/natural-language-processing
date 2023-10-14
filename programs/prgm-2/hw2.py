@@ -63,7 +63,6 @@ def simValuesPct(model: KeyedVectors, key: str, countPctList: []):
         else:
             # Calculate the percentile index and retrieve the similarity value.
             percentile_index = int(countPct * (len(model.index_to_key) - 1) / 100)
-            
             similarity_values.append(model.similarity(w1=key, w2=model.index_to_key[percentile_index]))
 
     return similarity_values
