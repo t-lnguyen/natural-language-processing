@@ -18,9 +18,29 @@ model = g1.load("glove-wiki-gigaword-100")
 words_eval = [
     "alpha",
     "bravo",
-    "cat",
+    "charlie",
     "delta",
-    "echo"
+    "echo",
+    "foxtrot",
+    "golf",
+    "hotel",
+    "india",
+    "juliet",
+    "kilo",
+    "lima",
+    "mike",
+    "november",
+    "oscar",
+    "papa",
+    "quebec",
+    "romeo",
+    "sierra",
+    "tango",
+    "uniform",
+    "whiskey",
+    "x-ray",
+    "yankee",
+    "zulu"
 ]
 
 for word in words_eval:
@@ -52,15 +72,21 @@ for word in words_eval:
 
 # For example, you can create a histogram for each set of values.
 plt.figure(figsize=(12, 4))
-plt.subplot(131)
+ax = plt.subplot(131)
+ax.set_xlabel("Percentage of Similarity")
+ax.set_ylabel("Count of Similarty Values")
 plt.hist(most_similar_values, bins=30)
 plt.title("Most Similar")
 
-plt.subplot(132)
+ax = plt.subplot(132)
+ax.set_xlabel("Percentage of Similarity")
+ax.set_ylabel("Count of Similarty Values")
 plt.hist(fifth_similar_values, bins=30)
 plt.title("Fifth Most Similar")
 
-plt.subplot(133)
+ax = plt.subplot(133)
+ax.set_xlabel("Percentage of Similarity")
+ax.set_ylabel("Count of Similarty Values")
 plt.hist(tenth_similar_values, bins=30)
 plt.title("Tenth Most Similar")
 
