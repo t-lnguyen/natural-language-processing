@@ -5,13 +5,13 @@ import matplotlib.pyplot as plt
 
 model = g1.load("glove-wiki-gigaword-100")
 
-l1 = simValues(model=model, key="board", countList=[1, 5, 50, 10])
+# l1 = simValues(model=model, key="board", countList=[1, 5, 50, 10])
 
-print(l1)
+# print(l1)
 
-l2 = simValuesPct(model=model, key="board", countPctList=[0, 25, 50, 75, 100])
+# l2 = simValuesPct(model=model, key="board", countPctList=[0, 25, 50, 75, 100])
 
-print(l2)
+# print(l2)
 
 
 #======== Getting Distribution of most, 5th, and 10th similar word values ========#
@@ -53,15 +53,15 @@ for word in words_eval:
 # For example, you can create a histogram for each set of values.
 plt.figure(figsize=(12, 4))
 plt.subplot(131)
-plt.hist(most_similar_values, bins=20)
+plt.hist(most_similar_values, bins=30)
 plt.title("Most Similar")
 
 plt.subplot(132)
-plt.hist(fifth_similar_values, bins=20)
+plt.hist(fifth_similar_values, bins=30)
 plt.title("Fifth Most Similar")
 
 plt.subplot(133)
-plt.hist(tenth_similar_values, bins=20)
+plt.hist(tenth_similar_values, bins=30)
 plt.title("Tenth Most Similar")
 
 plt.show()

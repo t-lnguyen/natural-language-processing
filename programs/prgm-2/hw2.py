@@ -1,6 +1,6 @@
 from gensim.models import KeyedVectors
 
-def simValues(model: KeyedVectors, key: str, countList: []):
+def simValues(model: KeyedVectors, key: str, countList: []) -> list:
     """ 
     Args:
         model: a Word2Vec model loaded from Gensim
@@ -33,7 +33,7 @@ def simValues(model: KeyedVectors, key: str, countList: []):
 
     return similarity_values
 
-def simValuesPct(model: KeyedVectors, key: str, countPctList: []):
+def simValuesPct(model: KeyedVectors, key: str, countPctList: []) -> list:
     """ 
     Args:
         model: a Word2Vec model loaded from Gensim
