@@ -105,3 +105,19 @@ def synsetSimValue(model: KeyedVectors, synset: Synset) -> list:
     max_simil = max(similarities)
 
     return [avg_simil, std_dev, min_simil, max_simil]
+
+def get_hypernym_depth(synset: Synset) -> int:
+    """ calculates the depth of a synset in the WordNet hierarchy
+    Args:
+        synset: a WordNet synset
+    Returns:
+        depth of the synset
+    """
+    depth = 0
+    hypernym = synset
+
+    while hypernym:
+        depth += 1
+        hypernym = hypernym.hypernyms()
+
+    return depth
