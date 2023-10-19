@@ -19,19 +19,20 @@ def simValues(model: KeyedVectors, key: str, countList: []) -> list:
         raise ValueError("The 'key' parameter must be a string.")
     
     if key not in model.key_to_index:
-        # If the key is not in the vocabulary, return -10000.0 for all counts.
+        # if the key is not in the vocabulary, return -10000.0 for all counts
         return [-10000.0] * len(countList)
     
     similarity_values = []
     
     for count in countList:
         if not isinstance(count, int) or count <= 0 or count > len(model.index_to_key) - 1:
-            # If count is out of range, return -10000.0.
+            # if count is out of range, return -10000.0
             similarity_values.append(-10000.0)
         else:
-            # Find the m-th nearest neighbor and calculate its similarity value.
+            # find the m-th nearest neighbor and calculate its similarity value
             most_similar = model.most_similar(key, topn=count)
-            similarity_values.append(most_similar[-1][1])  # Get the similarity value.
+            # get the similarity value
+            similarity_values.append(most_similar[-1][1])
 
     return similarity_values
 
@@ -52,20 +53,20 @@ def simValuesPct(model: KeyedVectors, key: str, countPctList: []) -> list:
         raise ValueError("The 'key' parameter must be a string.")
     
     if key not in model.key_to_index:
-        # If the key is not in the vocabulary, return -10000.0 for all percentiles.
+        # if the key is not in the vocabulary, return -10000.0 for all percentiles
         return [-10000.0] * len(countPctList)
 
     similarity_values = []
 
     for countPct in countPctList:
         if countPct < 0 or countPct > 100:
-            # If countPct is out of range, return -10000.0.
+            # if countPct is out of range, return -10000.0
             similarity_values.append(-10000.0)
         elif countPct == 0:
-            # if the value is 0, it should return the similarity of the most similar word.
+            # if the value is 0, it should return the similarity of the most similar word
             similarity_values.append(model.most_similar(key, topn=1)[0][1])
         else:
-            # Calculate the percentile index and retrieve the similarity value.
+            # calculate the percentile index and retrieve the similarity value
             percentile_index = int(countPct * (len(model.index_to_key) - 1) / 100)
             similarity_values.append(model.similarity(w1=key, w2=model.index_to_key[percentile_index]))
 
@@ -87,24 +88,33 @@ def synsetSimValue(model: KeyedVectors, synset: Synset) -> list:
     if not isinstance(synset, Synset):
         raise ValueError("The 'synset' parameter must be a WordNet Synset synset")
     
-    words_in_synset = [lemma.name() for lemma in synset.lemmas() if "_" not in lemma.name()]
+    words_in_synset = generate_words_in_synset(synset=synset)
     
     if len(words_in_synset) <= 1:
         return [] if not words_in_synset else [0, 0, 0, 0]
     
-    # Calculate similarity values for all pairs of words in the synset.
+    # calculate similarity values for all pairs of words in the synset
     similarities = []
     for i in range(len(words_in_synset)):
         for j in range(i + 1, len(words_in_synset)):
-            try:
-                similarity = model.similarity(words_in_synset[i], words_in_synset[j])
-                similarities.append(similarity)
-            except:
+            if words_in_synset[i] not in model.key_to_index or\
+                words_in_synset[j] not in model.key_to_index:
                 similarities.append(0)
-            
-    avg_simil = mean(similarities)
-    std_dev = std(similarities)
-    min_simil = min(similarities)
-    max_simil = max(similarities)
+            else:
+                similarities.append(model.similarity(words_in_synset[i], words_in_synset[j]))
 
-    return [avg_simil, std_dev, min_simil, max_simil]
+    return [
+        mean(similarities),
+        std(similarities),
+        min(similarities),
+        max(similarities)
+    ]
+
+def generate_words_in_synset(synset: Synset) -> list:
+    """
+    Args:
+        synset: a WordNet synset
+    Returns:
+        Words in the Synset
+    """
+    return [lemma.name() for lemma in synset.lemmas() if "_" not in lemma.name()]
