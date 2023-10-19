@@ -2,6 +2,7 @@ from hw2 import simValues, simValuesPct, synsetSimValue
 import gensim.downloader as g1
 from nltk.corpus import wordnet as wn
 from nltk import download
+from numpy import mean
 import matplotlib.pyplot as plt
 
 # word: the word to be searched
@@ -19,7 +20,7 @@ SYNSET_VERB = "be.v.07"
 
 download('wordnet')
 model = g1.load("glove-wiki-gigaword-100")
-synset = wn.synset(SYNSET_VERB)
+synset = wn.synset(SYNSET_NOUN)
 
 
 def part1():
@@ -159,13 +160,37 @@ def part1():
 
 
 def part2():
-    #TODO revisit lecture on synsets -> determine "depth", "hypernym-hyponym" topics
+    #TODO revisit lecture on synsets -> "hypernym-hyponym" topics
     stats = synsetSimValue(model=model, synset=synset)
     print(f"Average Similiarity: {stats[0]}")
-    print(f"Standard Deviation: {stats[0]}")
-    print(f"Min Similiarity: {stats[0]}")
-    print(f"Max Similiarity: {stats[0]}")
+    print(f"Standard Deviation: {stats[1]}")
+    print(f"Min Similiarity: {stats[2]}")
+    print(f"Max Similiarity: {stats[3]}")
 
     # analyze relationship between depth in WordNet hierarchy and similarity changes
+    depths = []
+    avg_similarities = []
+    avg_std_devs = []
+    for hypernym in synset.hypernyms():
+        depth = max(len(hyp_path) for hyp_path in synset.hypernym_paths())
+        similarities = []
+        std_devs = []
+        for hyponym in hypernym.hyponyms():
+            stats = synsetSimValue(model, hyponym)
+            if stats:
+                similarities.append(stats[0])
+                std_devs.append(stats[1])
+        avg_similarity = mean(similarities)
+        avg_std_dev = mean(std_devs)
+        depths.append(depth)
+        avg_similarities.append(avg_similarity)
+        avg_std_devs.append(avg_std_dev)
+
+    print(f"Depths of Hypernyms: {depths}")
+    print(f"Average Similarities at Different Depths: {avg_similarities}")
+    print(f"Average Standard Deviations at Different Depths: {avg_std_dev}")
     # analyze relationship between words in the same synset and different synsets 
     # with respect to similarity values
+
+
+part2()
