@@ -1,9 +1,11 @@
-from hw2 import simValues, simValuesPct, synsetSimValue
+from hw2 import simValues, simValuesPct, synsetSimValue, generate_words_in_synset
 import gensim.downloader as g1
 from nltk.corpus import wordnet as wn
 from nltk import download
 from numpy import mean
 import matplotlib.pyplot as plt
+
+import random
 
 # word: the word to be searched
 # pos: the part of speech 
@@ -21,7 +23,7 @@ SYNSET_VERB = "be.v.07"
 download('wordnet')
 model = g1.load("glove-wiki-gigaword-100")
 synset = wn.synset(SYNSET_NOUN)
-
+random.seed(42)
 
 def part1():
     l1 = simValues(model=model, key="board", countList=[1, 5, 50, 10])
@@ -160,7 +162,6 @@ def part1():
 
 
 def part2():
-    #TODO revisit lecture on synsets -> "hypernym-hyponym" topics
     stats = synsetSimValue(model=model, synset=synset)
     print(f"Average Similiarity: {stats[0]}")
     print(f"Standard Deviation: {stats[1]}")
@@ -189,8 +190,26 @@ def part2():
     print(f"Depths of Hypernyms: {depths}")
     print(f"Average Similarities at Different Depths: {avg_similarities}")
     print(f"Average Standard Deviations at Different Depths: {avg_std_dev}")
+
     # analyze relationship between words in the same synset and different synsets 
     # with respect to similarity values
+    words_in_synset = generate_words_in_synset(synset=synset)
+    some_word = random.choice(words_in_synset)
+    same_synset_sim_vals = [
+        (some_word, word, model.similarity(some_word, word))
+        for word in words_in_synset
+    ]
+    
+    some_different_synset = wn.synset('man.n.11')
+    blah = generate_words_in_synset(synset=some_different_synset)
+    some_different_synset_sim_vals = [
+        (some_word, word, model.similarity(some_word, word))
+        for word in generate_words_in_synset(synset=some_different_synset)
+    ]
 
+    print(f"Similarities within the Same Synset: {same_synset_sim_vals}")
+    print(f"Similarities with a Different Synset: {some_different_synset_sim_vals}")
+
+    # analyze how the distance between synsets has an effect on the previous findings
 
 part2()
