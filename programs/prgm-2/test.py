@@ -6,6 +6,7 @@ from numpy import mean
 import matplotlib.pyplot as plt
 
 import random
+import os
 
 # word: the word to be searched
 # pos: the part of speech 
@@ -61,6 +62,9 @@ def part1():
         "yankee",
         "zulu"
     ]
+    hw2_path = os.path.dirname(__file__)
+    with open(f"{hw2_path}/words.txt", mode="r") as words_file:
+        words_eval = words_file.read().splitlines()
 
     for word in words_eval:
         print(f"Word: {word}")
@@ -82,84 +86,20 @@ def part1():
         fifth_similar = simValues(model, word, [5])
         tenth_similar = simValues(model, word, [10])
 
-        most_similar_values.append(most_similar[0])
-        fifth_similar_values.append(fifth_similar[0])
-        tenth_similar_values.append(tenth_similar[0])
+        most_similar_values.append((word, most_similar[0]))
+        fifth_similar_values.append((word, fifth_similar[0]))
+        tenth_similar_values.append((word, tenth_similar[0]))
 
-    # Analyze and visualize the distribution of similarity values here.
-    # You can use NumPy for statistical analysis and Matplotlib for visualization.
-
-    # For example, you can create a histogram for each set of values.
-    plt.figure(figsize=(12, 4))
-    ax = plt.subplot(131)
-    ax.set_xlabel("Percentage of Similarity")
-    ax.set_ylabel("Count of Similarity Values")
-    plt.hist(most_similar_values, bins=30)
-    plt.title("Most Similar")
-
-    ax = plt.subplot(132)
-    ax.set_xlabel("Percentage of Similarity")
-    ax.set_ylabel("Count of Similarity Values")
-    plt.hist(fifth_similar_values, bins=30)
-    plt.title("Fifth Most Similar")
-
-    ax = plt.subplot(133)
-    ax.set_xlabel("Percentage of Similarity")
-    ax.set_ylabel("Count of Similarity Values")
-    plt.hist(tenth_similar_values, bins=30)
-    plt.title("Tenth Most Similar")
-
-    plt.show()
-
-    for word in words_eval:
-        print(f"Word: {word}")
-        most_similar = simValuesPct(model, word, [1])
-        fifth_similar = simValuesPct(model, word, [5])
-        tenth_similar = simValuesPct(model, word, [10])
-
-        print(f"Most Similar: {most_similar[0]}")
-        print(f"Fifth Most Similar: {fifth_similar[0]}")
-        print(f"Tenth Most Similar: {tenth_similar[0]}")
-        print()
-
-    most_similar_values = []
-    fifth_similar_values = []
-    tenth_similar_values = []
-
-    for word in words_eval:
-        most_similar = simValuesPct(model, word, [1])
-        fifth_similar = simValuesPct(model, word, [5])
-        tenth_similar = simValuesPct(model, word, [10])
-
-        most_similar_values.append(most_similar[0])
-        fifth_similar_values.append(fifth_similar[0])
-        tenth_similar_values.append(tenth_similar[0])
-
-    # Analyze and visualize the distribution of similarity values here.
-    # You can use NumPy for statistical analysis and Matplotlib for visualization.
-
-    # For example, you can create a histogram for each set of values.
-    plt.figure(figsize=(12, 4))
-    ax = plt.subplot(131)
-    ax.set_xlabel("Percentage of Similarity")
-    ax.set_ylabel("Count of Similarity Values")
-    plt.hist(most_similar_values, bins=30)
-    plt.title("Most Similar")
-
-    ax = plt.subplot(132)
-    ax.set_xlabel("Percentage of Similarity")
-    ax.set_ylabel("Count of Similarity Values")
-    plt.hist(fifth_similar_values, bins=30)
-    plt.title("Fifth Most Similar")
-
-    ax = plt.subplot(133)
-    ax.set_xlabel("Percentage of Similarity")
-    ax.set_ylabel("Count of Similarity Values")
-    plt.hist(tenth_similar_values, bins=30)
-    plt.title("Tenth Most Similar")
-
-    plt.show()
-
+    with open("most_sim_values.csv", mode="w") as most_file:
+        for sim_val in list(dict.fromkeys(most_similar_values)):
+            most_file.write(f"{sim_val[0]},{sim_val[1]}\n")
+    with open("5th_most_sim_values.csv", mode="w") as most_file:
+        for sim_val in list(dict.fromkeys(fifth_similar_values)):
+            most_file.write(f"{sim_val[0]},{sim_val[1]}\n")
+    with open("tenth_most_sim_values.csv", mode="w") as most_file:
+        for sim_val in list(dict.fromkeys(tenth_similar_values)):
+            most_file.write(f"{sim_val[0]},{sim_val[1]}\n")
+    # plt.show()
 
 def part2():
     stats = synsetSimValue(model=model, synset=synset)
@@ -211,5 +151,5 @@ def part2():
     print(f"Similarities with a Different Synset: {some_different_synset_sim_vals}")
 
     # analyze how the distance between synsets has an effect on the previous findings
-
-part2()
+part1()
+#part2()
