@@ -23,7 +23,7 @@ SYNSET_VERB = "be.v.07"
 
 download('wordnet')
 model = g1.load("glove-wiki-gigaword-100")
-synset = wn.synset(SYNSET_NOUN)
+base_synset = wn.synset(SYNSET_NOUN)
 random.seed(42)
 
 def part1():
@@ -101,8 +101,27 @@ def part1():
             most_file.write(f"{sim_val[0]},{sim_val[1]}\n")
     # plt.show()
 
+def messing_about():
+    # find the synsets that have enough lemmas for substantial analysis for this model 
+    best_synsets = [synset for synset in wn.all_synsets(pos=wn.NOUN) if len(synset.lemmas()) > 2]
+    best_synsets_avg = []
+    best_synsets_std_dev = []
+    for best_synset in best_synsets:
+        stats = synsetSimValue(model=model, synset=best_synset)
+        if len(stats) > 0 and stats[0] > 0:
+            best_synsets_avg.append((best_synset._name, stats[0]))
+            best_synsets_std_dev.append((best_synset._name, stats[1]))
+    
+    with open("best_synsets_avg.csv", mode="w") as best_synset_avg:
+        for best_synset_pair in list(dict.fromkeys(best_synsets_avg)):
+            best_synset_avg.write(f"{best_synset_pair[0]},{best_synset_pair[1]}\n")
+    with open("best_synsets_std_dev.csv", mode="w") as best_synset_std_dev_file:
+        for best_synset_pair in list(dict.fromkeys(best_synsets_std_dev)):
+            best_synset_std_dev_file.write(f"{best_synset_pair[0]},{best_synset_pair[1]}\n")
+    print()
+
 def part2():
-    stats = synsetSimValue(model=model, synset=synset)
+    stats = synsetSimValue(model=model, synset=base_synset)
     print(f"Average Similiarity: {stats[0]}")
     print(f"Standard Deviation: {stats[1]}")
     print(f"Min Similiarity: {stats[2]}")
@@ -112,8 +131,8 @@ def part2():
     depths = []
     avg_similarities = []
     avg_std_devs = []
-    for hypernym in synset.hypernyms():
-        depth = max(len(hyp_path) for hyp_path in synset.hypernym_paths())
+    for hypernym in base_synset.hypernyms():
+        depth = max(len(hyp_path) for hyp_path in base_synset.hypernym_paths())
         similarities = []
         std_devs = []
         for hyponym in hypernym.hyponyms():
@@ -133,15 +152,14 @@ def part2():
 
     # analyze relationship between words in the same synset and different synsets 
     # with respect to similarity values
-    words_in_synset = generate_words_in_synset(synset=synset)
+    words_in_synset = generate_words_in_synset(synset=base_synset)
     some_word = random.choice(words_in_synset)
     same_synset_sim_vals = [
         (some_word, word, model.similarity(some_word, word))
         for word in words_in_synset
     ]
     
-    some_different_synset = wn.synset('man.n.11')
-    blah = generate_words_in_synset(synset=some_different_synset)
+    some_different_synset = wn.synset('golem.n.02')
     some_different_synset_sim_vals = [
         (some_word, word, model.similarity(some_word, word))
         for word in generate_words_in_synset(synset=some_different_synset)
@@ -151,5 +169,24 @@ def part2():
     print(f"Similarities with a Different Synset: {some_different_synset_sim_vals}")
 
     # analyze how the distance between synsets has an effect on the previous findings
+    path_sim_base = base_synset.path_similarity(some_different_synset)
+    path_sim_dif = some_different_synset.path_similarity(base_synset)
+
+    lch_sim_base = base_synset.lch_similarity(some_different_synset)
+    lch_sim_dif = some_different_synset.lch_similarity(base_synset)
+
+    wup_sim_base = base_synset.wup_similarity(some_different_synset)
+    wup_sim_dif = some_different_synset.wup_similarity(base_synset)
+
+    print(f"The distance using Path Similarity with base:different {path_sim_base}")
+    print(f"The distance using Path Similarity with different:base {path_sim_dif}")
+
+    print(f"The distance using Leacock-Chodorow Similarity with base:different {lch_sim_base}")
+    print(f"The distance using Leacock-Chodorow Similarity with different:base {lch_sim_dif}")
+
+    print(f"The distance using Wu-Palmer Similarity with base:different {wup_sim_base}")
+    print(f"The distance using Wu-Palmer Similarity with different:base {wup_sim_dif}")
+
 part1()
-#part2()
+messing_about()
+part2()
